@@ -4,8 +4,8 @@ import { createRouter,createWebHistory} from "vue-router";
 const routes = [
     {
         path: "/",
-        name: "Index",
-        component:  () => import('../views/Home.vue'),
+        name: "Login",
+        component:  () => import('../views/Login.vue'),
     },
     {
         path: "/login",

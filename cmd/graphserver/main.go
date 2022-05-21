@@ -57,6 +57,7 @@ func main() {
 	}
 
 	router.Use(cors.New(cors.Options{
+		AllowedHeaders:   []string{"*"},
 		AllowedOrigins:   origins,
 		AllowCredentials: true,
 		Debug:            true,

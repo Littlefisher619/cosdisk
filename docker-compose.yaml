@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   graph:
-    image: cosdisk/backend
+    image: littlefisher0/cosdisk
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,22 +11,14 @@ services:
     entrypoint: ["/app/graphserver", "--host", "0.0.0.0", "--port", "8080"]
 
   ftp:
-    image: cosdisk/backend
+    image: littlefisher0/cosdisk
     depends_on:
     - graph
     ports:
-      - "2121:2121"
+      - "2121-2123:2121-2123"
       - "21:21" 
     entrypoint: ["/app/ftpserver"]
     
-  vue:
-    image: cosdisk/frontend
-    build:
-      context: ./vue-project
-      args:
-        - GQL_BACKEND=http://127.0.0.1:8080/query
-    ports:
-      - "8000:80"
 
 volumes:
   pg_data:
