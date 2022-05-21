@@ -1,0 +1,25 @@
+[database]
+sqlDB = "memmap"
+keyValueDB = "memmap"
+
+# sqlDB = "mysql"
+# sqlDB = "postgres"
+
+# to use tikv and tidb
+# keyValueDB = "tikv"
+# sqlDB = "tidb"
+# [tidb]
+# dataSourceName = "root@tcp(127.0.0.1:4000)/test?charset=utf8"
+# [tikv]
+# pdAddr = "127.0.0.1:2379"
+
+# to use redis
+# keyValueDB = "redis"
+# [redis]
+# addr = "localhost:6379"
+# password = ""
+
+[storage]
+cosURL = "https://aaa-1251109145.cos.ap-nanjing.myqcloud.com"
+secretID = ""
+secretKey = ""

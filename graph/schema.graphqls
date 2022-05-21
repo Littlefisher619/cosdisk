@@ -1,0 +1,61 @@
+directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @auth on FIELD_DEFINITION
+
+scalar Any
+
+input CreateUserInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+type User {
+  id: Int!
+  name: String!
+  email: String!
+}
+
+type AuthResult {
+  token: String!
+  user: User!
+}
+
+"The `Upload` scalar type represents a multipart file upload."
+scalar Upload
+
+"The `File` type, represents the response of uploading a file."
+type File {
+    name: String!
+    contentType: String!
+}
+
+"The `Query` type, represents all of the entry points into our object graph."
+type Query {
+    empty: String!
+}
+
+input FileInput {
+    file: Upload!
+    path: String!
+}
+
+input ShareInput {
+    path: String!
+    expireDays: Int!
+}
+
+"The `Mutation` type, represents all updates we can make to our data."
+type Mutation {
+    singleUpload(input: FileInput!): File! @auth
+    deleteFile(path: String!): String! @auth
+    createDir(path: String!): String! @auth
+    listDir(path: String!): [File!]! @auth
+    deleteDir(path: String!): String! @auth
+    createShareFile(input: ShareInput!): String! @auth
+    getSharedFile(shareID: String!): String! @auth
+    getDownloadURL(path: String!): String! @auth
+    moveFile(path: String!, newpath: String!): String! @auth
+    login(email: String!, password: String!): AuthResult!
+    register(input: CreateUserInput!): AuthResult!
+}
