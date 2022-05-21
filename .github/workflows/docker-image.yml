@@ -4,8 +4,9 @@ on:
   push:
     tags:
       - v*
+  
 env:
-  QCLOUD_REG: ccr.ccs.tencentyun.com/cosdisk/gqlserver
+  DOCKER_REG: littlefisher0/cosdisk
 
 jobs:
 
@@ -17,12 +18,10 @@ jobs:
     - name: Docker Login
       uses: docker/login-action@v2.0.0
       with:
-        # Server address of Docker registry. If not set then will default to Docker Hub
-        registry: ${{ env.QCLOUD_REG }}
         # Username used to log against the Docker registry
-        username: ${{ secrets.QCLOUD_REG_USR }}
+        username: ${{ secrets.DOCKERHUB_USR }}
         # Password or personal access token used to log against the Docker registry
-        password: ${{ secrets.QCLOUD_REG_PWD }}
+        password: ${{ secrets.DOCKERHUB_PWD }}
     - uses: actions/checkout@v3
     - name: Generate App Version
       run: echo APP_VERSION=`git describe --tags --always` >> $GITHUB_ENV
@@ -33,5 +32,5 @@ jobs:
       with:
         push: true
         tags: |
-          ${{ env.QCLOUD_REG }}:latest
-          ${{ env.QCLOUD_REG }}:${{ env.APP_VERSION }}
+          ${{ env.DOCKER_REG }}:latest
+          ${{ env.DOCKER_REG }}:${{ env.APP_VERSION }}
