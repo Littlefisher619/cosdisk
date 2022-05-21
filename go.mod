@@ -6,6 +6,7 @@ require (
 	bazil.org/fuse v0.0.0-20200524192727-fb710f7dfd05
 	github.com/99designs/gqlgen v0.16.0
 	github.com/BurntSushi/toml v1.1.0 // indirect
+	github.com/aws/aws-sdk-go v1.44.19
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fclairamb/ftpserverlib v0.17.0
 	github.com/fclairamb/go-log v0.2.0
