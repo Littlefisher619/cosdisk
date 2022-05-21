@@ -5,7 +5,7 @@ on:
     tags:
       - v*
 env:
-  QCLOUD_REPO: ccr.ccs.tencentyun.com/cosdisk/gqlserver
+  QCLOUD_REG: ccr.ccs.tencentyun.com/cosdisk/gqlserver
 
 jobs:
 
@@ -18,7 +18,7 @@ jobs:
       uses: docker/login-action@v2.0.0
       with:
         # Server address of Docker registry. If not set then will default to Docker Hub
-        registry: ccr.ccs.tencentyun.com/cosdisk/gqlserver
+        registry: ${{ env.QCLOUD_REG }}
         # Username used to log against the Docker registry
         username: ${{ secrets.QCLOUD_REG_USR }}
         # Password or personal access token used to log against the Docker registry
