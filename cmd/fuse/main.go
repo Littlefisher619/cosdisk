@@ -33,6 +33,8 @@ func handleExit(mountpoint string) {
 func main() {
 	configPath := flag.String("config-file", "./config.toml", "The toml config file")
 	mountpoint := flag.String("mount-point", "./test", "The mount point")
+	email := flag.String("email", "youremail@email.com", "Email")
+	pwd := flag.String("password", "password", "Password")
 	flag.Parse()
 
 	handleExit(*mountpoint)
@@ -44,11 +46,11 @@ func main() {
 	}
 	service := cosdisk.New(cf)
 	// for test
-	_, err = service.UserRegister(context.Background(), "test", "test", "test")
+	_, err = service.UserLogin(context.Background(), *email, *pwd)
 	if err != nil {
 		log.Fatal(err)
 	}
-	FS, err := server.NewFS("test", "test", service)
+	FS, err := server.NewFS(*email, *pwd, service)
 	if err != nil {
 		log.Fatal(err)
 	}

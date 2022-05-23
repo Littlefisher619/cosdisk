@@ -1,13 +1,23 @@
-FROM golang:1.17-alpine
+FROM golang:1.17 as builder
+
+ENV GO111MODULE=on
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY . .
+
+RUN make graph
+RUN make ftp
+
+FROM scratch
 
 WORKDIR /app
 
-COPY . .
-RUN go env
-RUN go mod download
+COPY --from=builder /app/build .
 
-RUN go build -o ftpserver cmd/ftpserver/main.go
-RUN go build -o graphserver cmd/graphserver/main.go
 EXPOSE 8080
 
 CMD [ "/app/graphserver" ]
