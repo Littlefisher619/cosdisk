@@ -46,6 +46,10 @@ func (l *LoggerAdapter) Info(event string, keyvals ...interface{}) {
 	l.WithFields(extractKeyvals(keyvals...)).Infof("%s", event)
 }
 
+func (l *LoggerAdapter) Panic(event string, keyvals ...interface{}) {
+	l.WithFields(extractKeyvals(keyvals...)).Panicf("%s", event)
+}
+
 func (l *LoggerAdapter) With(keyvals ...interface{}) log.Logger {
 	return &LoggerAdapter{l.WithFields(extractKeyvals(keyvals))}
 }
