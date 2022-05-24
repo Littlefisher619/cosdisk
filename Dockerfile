@@ -12,12 +12,15 @@ COPY . .
 RUN make graph
 RUN make ftp
 
+FROM alpine:latest as certs
+RUN apk --update add ca-certificates
+
 FROM scratch
 
 WORKDIR /app
 
 COPY --from=builder /app/build .
-
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 EXPOSE 8080
 
 CMD [ "/app/graphserver" ]
