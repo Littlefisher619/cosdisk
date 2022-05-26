@@ -7,15 +7,17 @@ var (
 	ErrInternalServerError = errors.New("internal Server Error")
 	ErrUnimplemented       = errors.New("unimplemented")
 	// FileNotFound will throw if the requested file is not exists
-	ErrFileNotFound = errors.New("Your requested file is not found")
-	ErrFileExists   = errors.New("Your requested file is already exists")
+	ErrNotFound   = errors.New("Your requested file is not found")
+	ErrFileExists = errors.New("Your requested file is already exists")
 	// ErrInvalidFileKey will throw if Invalid userfile key
 	ErrInvalidFileKey = errors.New("Invalid userfile key")
-	// ErrIsDir will throw if This file is a dir
-	ErrIsDir = errors.New("This file is a dir")
+	// ErrUnsupportDirTarget will throw if This file is a dir
+	ErrUnsupportOperation  = errors.New("Requested operation is not supported")
+
 	// ErrIsFile will throw if This dir is a file
 	ErrIsFile          = errors.New("This dir is a file")
 	ErrUserNotFound    = errors.New("User not found")
 	ErrShareIdNotFound = errors.New("Share id not found")
 	ErrShareExpired    = errors.New("The share id is expired")
+	ErrIllegalInput    = errors.New("Illegal input")
 )

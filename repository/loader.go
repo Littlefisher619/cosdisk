@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/Littlefisher619/cosdisk/model"
+	"github.com/Littlefisher619/cosdisk/pkg/dbdriver"
 	"github.com/Littlefisher619/cosdisk/repository/account"
-	"github.com/Littlefisher619/cosdisk/repository/connections"
 	"github.com/Littlefisher619/cosdisk/repository/sharefile"
 	"github.com/Littlefisher619/cosdisk/repository/userfile"
 	"github.com/pelletier/go-toml"
@@ -18,7 +18,7 @@ type RepositoryConfig struct {
 }
 
 func (c *RepositoryConfig) CreateXormDB(driverName string, dataSourceName string) error {
-	engine, err := connections.CreateXormEngine(driverName, dataSourceName, []interface{}{
+	engine, err := dbdriver.CreateXormEngine(driverName, dataSourceName, []interface{}{
 		&model.User{},
 		&model.ShareFile{},
 	}, false)
@@ -41,14 +41,14 @@ func LoadDataBaseConfig(config *toml.Tree) (RepositoryConfig, error) {
 	case "redis":
 		pass := config.GetDefault("redis.password", "")
 		addr := config.GetDefault("redis.addr", "localhost:6379")
-		redis := connections.InitRedis(addr.(string), pass.(string))
+		redis := dbdriver.InitRedis(addr.(string), pass.(string))
 		if redis == nil {
 			return c, fmt.Errorf("redis init failed")
 		}
 		c.UserfileRepository = userfile.NewUserfileKV(redis)
 	case "tikv":
 		pdaddr := config.GetDefault("tikv.pdAddr", "127.0.0.1:2379")
-		tikv := connections.InitTikv([]string{pdaddr.(string)})
+		tikv := dbdriver.InitTikv([]string{pdaddr.(string)})
 		c.UserfileRepository = userfile.NewUserfileKV(tikv)
 	default:
 		c.UserfileRepository = userfile.NewMap()

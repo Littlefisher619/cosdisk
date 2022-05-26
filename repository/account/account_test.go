@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/Littlefisher619/cosdisk/model"
-	"github.com/Littlefisher619/cosdisk/repository/connections"
+	"github.com/Littlefisher619/cosdisk/pkg/dbdriver"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,7 +47,7 @@ func TestAccountPG(t *testing.T) {
 	models := []interface{}{
 		(*model.User)(nil),
 	}
-	db, err := connections.NewPostgresDB(models, true)
+	db, err := dbdriver.NewPostgresDB(models, true)
 	ass.NoError(err)
 	userDB := NewPG(db)
 	defer db.Db.Close()

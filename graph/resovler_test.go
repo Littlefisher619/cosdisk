@@ -15,7 +15,7 @@ import (
 	"github.com/Littlefisher619/cosdisk/graph/generated"
 	"github.com/Littlefisher619/cosdisk/graph/model"
 	m "github.com/Littlefisher619/cosdisk/model"
-	"github.com/Littlefisher619/cosdisk/repository/connections"
+	"github.com/Littlefisher619/cosdisk/repository/dbdriver"
 	"github.com/Littlefisher619/cosdisk/service"
 	"github.com/stretchr/testify/require"
 )
@@ -29,12 +29,12 @@ func TestFile(t *testing.T) {
 		&m.User{},
 		&m.ShareFile{},
 	}
-	db, err := connections.CreateXormEngine("mysql", "root@/tcp(127.0.0.1:4000)", models, true)
+	db, err := dbdriver.CreateXormEngine("mysql", "root@/tcp(127.0.0.1:4000)", models, true)
 	if err != nil {
 		panic(err)
 	}
 	defer db.Db.Close()
-	rc := connections.InitTikv([]string{"127.0.0.1:2379"})
+	rc := dbdriver.InitTikv([]string{"127.0.0.1:2379"})
 	if rc == nil {
 		return
 	}

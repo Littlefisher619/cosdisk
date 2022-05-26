@@ -119,7 +119,7 @@ func (f *FileSystem) Open(name string) (afero.File, error) {
 func (f *FileSystem) Create(name string) (afero.File, error) {
 	f.logger.Info("Create " + name)
 
-	file := &File{fileData: &model.FileData{Minzhi: path.Base(name), Wenjianjia: false},
+	file := &File{fileData: &model.FileInfo{FName: path.Base(name), FIsDir: false},
 		Fs: f, path: name, isWrited: true, isCached: true}
 	f.openfiles[name] = file
 	return file, nil
@@ -130,7 +130,7 @@ func (f *FileSystem) OpenFile(name string, flag int, mode os.FileMode) (afero.Fi
 	f.logger.Info("OpenFile "+name, flag, mode)
 	file, err := f.Open(name)
 	if err != nil {
-		if err == model.ErrFileNotFound {
+		if err == model.ErrNotFound {
 			if flag&os.O_CREATE != 0 {
 				return f.Create(name)
 			}

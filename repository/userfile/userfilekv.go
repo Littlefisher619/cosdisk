@@ -1,6 +1,7 @@
 package userfile
 
 import (
+	"fmt"
 	"os"
 	ospath "path"
 	"strings"
@@ -39,7 +40,7 @@ func (us *UserfileStorageKV) RunInTranscation(txnfunc func(txn model.UserfileTXN
 	err = txnfunc(&UserfileTxnKV{txn})
 	if err != nil {
 		if e := txn.RollingBackTranscation(); e != nil {
-			return e
+			return fmt.Errorf("Rollback failed %s: %w", err, e)
 		}
 		return err
 	}
@@ -69,7 +70,7 @@ func (us *UserfileTxnKV) ListFiles(userid string, dirpath string) (files []os.Fi
 	key := GenerateUserFileKey(userid, dirpath)
 	value, err := us.txn.Get(key)
 	if err != nil {
-		return nil, model.ErrFileNotFound
+		return nil, model.ErrNotFound
 	}
 	kind, data, err := ParseUserFileValue(value)
 	if err != nil {
@@ -93,7 +94,7 @@ func (us *UserfileTxnKV) GetFileInfo(username string, path string) (info os.File
 		key = GenerateUserFileKey(username, path)
 		value, err = us.txn.Get(key)
 		if err != nil {
-			return nil, model.ErrFileNotFound
+			return nil, model.ErrNotFound
 		}
 	}
 	kind, _, err := ParseUserFileValue(value)
@@ -102,14 +103,14 @@ func (us *UserfileTxnKV) GetFileInfo(username string, path string) (info os.File
 	}
 	if kind == FileType {
 		return &FileData{
-			Minzhi:     ospath.Base(path),
-			Wenjianjia: false,
+			FName:  ospath.Base(path),
+			FIsDir: false,
 		}, nil
 	}
 	return &FileData{
-		Minzhi:     ospath.Base(path),
-		Wenjianjia: true,
-		Mushi:      os.ModeDir,
+		FName:  ospath.Base(path),
+		FIsDir: true,
+		FMode:  os.ModeDir,
 	}, nil
 }
 
@@ -117,14 +118,14 @@ func (us *UserfileTxnKV) GetFileID(userid string, path string) (id string, err e
 	key := GenerateUserFileKey(userid, path)
 	value, err := us.txn.Get(key)
 	if err != nil {
-		return "", model.ErrFileNotFound
+		return "", model.ErrNotFound
 	}
 	kind, data, err := ParseUserFileValue(value)
 	if err != nil {
 		return "", err
 	}
 	if kind != FileType {
-		return "", model.ErrIsDir
+		return "", model.ErrUnsupportDirTarget
 	}
 	return data[0], nil
 }
@@ -133,10 +134,10 @@ func (us *UserfileTxnKV) DeleteFile(userid string, filepath string) error {
 	key := GenerateUserFileKey(userid, filepath)
 	value, err := us.txn.Get(key)
 	if err != nil {
-		return model.ErrFileNotFound
+		return model.ErrNotFound
 	}
 	if strings.HasPrefix(value, "dir") {
-		return model.ErrIsDir
+		return model.ErrUnsupportDirTarget
 	}
 	err = us.txn.Delete(key)
 	if err != nil {
@@ -153,7 +154,7 @@ func (us *UserfileTxnKV) DeleteDir(userid string, filepath string) error {
 	key := GenerateUserFileKey(userid, filepath)
 	value, err := us.txn.Get(key)
 	if err != nil {
-		return model.ErrFileNotFound
+		return model.ErrNotFound
 	}
 	if strings.HasPrefix(value, "file") {
 		return model.ErrIsFile
@@ -172,11 +173,11 @@ func (us *UserfileTxnKV) DeleteDir(userid string, filepath string) error {
 func (us *UserfileTxnKV) AddFile(userid string, filepath string, id string) error {
 	if info, err := us.GetFileInfo(userid, filepath); err == nil {
 		if info.IsDir() {
-			return model.ErrIsDir
+			return model.ErrUnsupportDirTarget
 		}
 		if filepath[len(filepath)-1] != '/' {
 			if info, err := us.GetFileInfo(userid, filepath+"/"); err == nil && info.IsDir() {
-				return model.ErrIsDir
+				return model.ErrUnsupportDirTarget
 			}
 		}
 		anotherid, err := us.GetFileID(userid, filepath)
@@ -206,17 +207,28 @@ func (us *UserfileTxnKV) AddFile(userid string, filepath string, id string) erro
 func (us *UserfileTxnKV) AddDir(userid string, dirpath string) error {
 	if dirpath != "/" {
 		// is not root
-		if info, err := us.GetFileInfo(userid, dirpath); err == nil {
+		info, err := us.GetFileInfo(userid, dirpath)
+		if err == nil {
 			if !info.IsDir() {
 				return model.ErrIsFile
 			}
 			return model.ErrFileExists
 		}
+
+		if err != model.ErrNotFound {
+			return fmt.Errorf("fail to create dir: %s", err)
+		}
+
 		if dirpath[len(dirpath)-1] != '/' {
 			dirpath = dirpath + "/"
 			if _, err := us.GetFileInfo(userid, dirpath); err == nil {
 				return model.ErrFileExists
 			}
+
+			if err != model.ErrNotFound {
+				return fmt.Errorf("fail to create dir: %s", err)
+			}
+
 		}
 		parentpath, dirname := Makedirpath(dirpath)
 		err := us.addFileToDir(userid, parentpath, dirname)
@@ -237,7 +249,7 @@ func (us *UserfileTxnKV) addFileToDir(userid string, dirpath string, filename st
 	key := GenerateUserFileKey(userid, dirpath)
 	dirContent, err := us.txn.Get(key)
 	if err != nil {
-		return model.ErrFileNotFound
+		return model.ErrNotFound
 	}
 	kind, data, err := ParseUserFileValue(dirContent)
 	if err != nil {
@@ -258,7 +270,7 @@ func (us *UserfileTxnKV) removeFilefromDir(userid string, dirpath string, filena
 	key := GenerateUserFileKey(userid, dirpath)
 	dirContent, err := us.txn.Get(key)
 	if err != nil {
-		return model.ErrFileNotFound
+		return model.ErrNotFound
 	}
 	kind, data, err := ParseUserFileValue(dirContent)
 	if err != nil {

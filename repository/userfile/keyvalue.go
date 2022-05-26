@@ -8,7 +8,7 @@ import (
 	"github.com/Littlefisher619/cosdisk/model"
 )
 
-type FileData = model.FileData
+type FileData = model.FileInfo
 
 /* help functions */
 
@@ -66,14 +66,14 @@ func ParseDirContent(data []string) (files []os.FileInfo, err error) {
 	for _, file := range data {
 		if file[len(file)-1] == '/' {
 			files = append(files, &FileData{
-				Minzhi:     file[:len(file)-1],
-				Wenjianjia: true,
-				Mushi:      os.ModeDir,
+				FName:  file[:len(file)-1],
+				FIsDir: true,
+				FMode:  os.ModeDir,
 			})
 		} else {
 			files = append(files, &FileData{
-				Minzhi:     file,
-				Wenjianjia: false,
+				FName:  file,
+				FIsDir: false,
 			})
 		}
 	}

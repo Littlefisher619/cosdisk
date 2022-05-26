@@ -1,11 +1,11 @@
 package userfile
 
 import (
-	"github.com/Littlefisher619/cosdisk/repository/connections"
+	"github.com/Littlefisher619/cosdisk/pkg/dbdriver"
 )
 
 func NewMap() *UserfileStorageKV {
 	return &UserfileStorageKV{
-		userfileKV: connections.InitMapKV(),
+		userfileKV: dbdriver.InitMapKV(),
 	}
 }

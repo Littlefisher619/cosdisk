@@ -5,14 +5,14 @@ import (
 	"strconv"
 
 	"github.com/Littlefisher619/cosdisk/model"
-	"github.com/Littlefisher619/cosdisk/repository/connections"
+	"github.com/Littlefisher619/cosdisk/pkg/dbdriver"
 )
 
 type UserStorageXORM struct {
-	conn *connections.DBEngine
+	conn *dbdriver.DBEngine
 }
 
-func NewXORM(DBPgConn *connections.DBEngine) *UserStorageXORM {
+func NewXORM(DBPgConn *dbdriver.DBEngine) *UserStorageXORM {
 	return &UserStorageXORM{
 		conn: DBPgConn,
 	}

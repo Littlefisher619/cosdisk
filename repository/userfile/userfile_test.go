@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	model "github.com/Littlefisher619/cosdisk/model"
-	"github.com/Littlefisher619/cosdisk/repository/connections"
+	"github.com/Littlefisher619/cosdisk/pkg/dbdriver"
 )
 
 func TestAll(t *testing.T) {
 	var userfile model.UserfileRepository
-	rc := connections.InitTikv([]string{"127.0.0.1:2379"})
+	rc := dbdriver.InitTikv([]string{"127.0.0.1:2379"})
 	if rc == nil {
 		return
 	}
@@ -78,8 +78,8 @@ func TestAll(t *testing.T) {
 		ass.NoError(err)
 		ass.Equal(dir, files)
 		ass.EqualValues(dir, []fs.FileInfo{&FileData{
-			Minzhi:     "file1.txt",
-			Wenjianjia: false,
+			FName:  "file1.txt",
+			FIsDir: false,
 		}})
 
 		files, err = txn.ListFiles(userid, "/test1")
@@ -90,7 +90,7 @@ func TestAll(t *testing.T) {
 		ass.NoError(err)
 
 		_, err = txn.ListFiles(userid, "/test3")
-		ass.Equal(err, model.ErrFileNotFound)
+		ass.Equal(err, model.ErrNotFound)
 
 		id, err := txn.GetFileID(userid, "/test1/file1.txt")
 		ass.NoError(err)
@@ -131,7 +131,7 @@ func TestAll(t *testing.T) {
 		ass.Equal(info.IsDir(), false)
 
 		_, err = txn.GetFileInfo(userid, "/file3.txt")
-		ass.Equal(err, model.ErrFileNotFound)
+		ass.Equal(err, model.ErrNotFound)
 	})
 
 	t.Run("TestDeleteFile", func(t *testing.T) {
@@ -164,7 +164,7 @@ func TestAll(t *testing.T) {
 		ass.NoError(txn.DeleteDir(userid, "/test2/")) // remove dir
 
 		// delete dir again
-		ass.Equal(txn.DeleteDir(userid, "/test1"), model.ErrFileNotFound)
+		ass.Equal(txn.DeleteDir(userid, "/test1"), model.ErrNotFound)
 		// delete file again
 		ass.Error(txn.DeleteFile(userid, "/test1/file1.txt")) // remove file
 		// test delete wrong type

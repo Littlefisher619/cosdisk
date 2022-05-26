@@ -174,7 +174,7 @@ func (c *CosDisk) DownloadUserFileByUrl(ctx context.Context, userId string, path
 		if err != nil {
 			return err
 		}
-		url, err = c.storage.DownloadByUrl(ctx, id)
+		url, err = c.storage.GetDownloadURL(ctx, id)
 		if err != nil {
 			return err
 		}
@@ -287,7 +287,7 @@ func (c *CosDisk) DownloadUserFileByReader(ctx context.Context, userId string, p
 		if err != nil {
 			return err
 		}
-		reader, err = c.storage.DownloadByReader(ctx, id)
+		reader, err = c.storage.GetReader(ctx, id)
 		if err != nil {
 			return err
 		}

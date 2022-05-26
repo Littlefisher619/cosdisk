@@ -1,7 +1,8 @@
-package connections
+package dbdriver
 
 import (
 	"fmt"
+
 	_ "github.com/go-sql-driver/mysql"
 	"xorm.io/xorm"
 )

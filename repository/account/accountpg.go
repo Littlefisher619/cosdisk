@@ -5,14 +5,14 @@ import (
 	"strconv"
 
 	"github.com/Littlefisher619/cosdisk/model"
-	"github.com/Littlefisher619/cosdisk/repository/connections"
+	"github.com/Littlefisher619/cosdisk/pkg/dbdriver"
 )
 
 type UserStoragePG struct {
-	conn *connections.DBPgConn
+	conn *dbdriver.DBPgConn
 }
 
-func NewPG(DBPgConn *connections.DBPgConn) *UserStoragePG {
+func NewPG(DBPgConn *dbdriver.DBPgConn) *UserStoragePG {
 	return &UserStoragePG{
 		conn: DBPgConn,
 	}

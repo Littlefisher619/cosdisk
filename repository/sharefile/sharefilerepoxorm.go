@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/Littlefisher619/cosdisk/model"
-	"github.com/Littlefisher619/cosdisk/repository/connections"
+	"github.com/Littlefisher619/cosdisk/pkg/dbdriver"
 )
 
 type SharefileStorageXORM struct {
-	conn *connections.DBEngine
+	conn *dbdriver.DBEngine
 }
 
-func NewXORM(DBEngine *connections.DBEngine) *SharefileStorageXORM {
+func NewXORM(DBEngine *dbdriver.DBEngine) *SharefileStorageXORM {
 	return &SharefileStorageXORM{
 		conn: DBEngine,
 	}

@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/Littlefisher619/cosdisk/model"
-	"github.com/Littlefisher619/cosdisk/repository/connections"
+	"github.com/Littlefisher619/cosdisk/pkg/dbdriver"
 )
 
 type SharefileStoragePG struct {
-	conn *connections.DBPgConn
+	conn *dbdriver.DBPgConn
 }
 
-func NewPG(DBPgConn *connections.DBPgConn) *SharefileStoragePG {
+func NewPG(DBPgConn *dbdriver.DBPgConn) *SharefileStoragePG {
 	return &SharefileStoragePG{
 		conn: DBPgConn,
 	}

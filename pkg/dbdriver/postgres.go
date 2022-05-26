@@ -1,4 +1,4 @@
-package connections
+package dbdriver
 
 import (
 	"github.com/go-pg/pg/v10"

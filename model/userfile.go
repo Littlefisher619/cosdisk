@@ -1,74 +1,92 @@
 package model
 
 import (
+	"context"
 	"os"
 	"time"
 )
 
-// FileData implements os.FileInfo interface
-type FileData struct {
-	Minzhi        string
-	Daxiao        int64
-	Wenjianjia    bool
-	Mushi         os.FileMode
-	Xiugaishijian time.Time
+// FileInfo implements os.FileInfo interface
+type FileInfo struct {
+	FSize    int64
+	FMode    os.FileMode
+	FModTime time.Time
+	FIsDir   bool
+	FName    string
 }
 
-func (fd *FileData) Sys() interface{} {
-	return nil
-}
-
-func (fd *FileData) Name() string {
-	return fd.Minzhi
-}
-
-func (fd *FileData) Size() int64 {
-	return fd.Daxiao
-}
-
-func (fd *FileData) IsDir() bool {
-	return fd.Wenjianjia
-}
-
-func (fd *FileData) Mode() os.FileMode {
-	return fd.Mushi
-}
-
-// modification time
-func (fd *FileData) ModTime() time.Time {
-	return fd.Xiugaishijian
-}
+type TxnFunc func(txn UserfileTXN) error
 
 // used by cosdisk
 type UserfileRepository interface {
-	RunInTranscation(func(txn UserfileTXN) error) error
-	StartTranscation() (UserfileTXN, error)
+	RunInTxn(ctx context.Context, txnfunc TxnFunc) error
+	Begin() (UserfileTXN, error)
+	Close() error
 }
+
+type DirContentList []DirContentItem
+
+type UserfileOperation interface {
+	CreateRepository(ctx context.Context, UID string) error
+	ListFiles(ctx context.Context, UID, inputPath string) (DirContentList, error)
+	// ListFileSummaries(ctx context.Context, UID, inputPath string) (FileDataList, error)
+	GetFileInfo(ctx context.Context, UID, inputPath string) (*FileInfoWrapper, error)
+	DeleteFile(ctx context.Context, UID, inputPath string) error
+	DeleteDir(ctx context.Context, UID, inputPath string) error
+	// AddFile takes a filepath and a file data
+	//
+	AddFile(
+		ctx context.Context, UID, inputPath string,
+		file *FileDetail,
+	) error
+	AddDir(ctx context.Context, UID, inputPath string) error
+}
+type FileInfoWrapper struct {
+	FileInfo
+	// Only valid when is FileInfo.IsDir() == true
+	DirContent DirContentList
+	// Only valid when is FileInfo.IsDir() == false
+	FileObject *FileObject
+}
+
+type DirContentItem struct {
+	FileInfo
+	// Only valid when is FileDetail.IsDir() == false
+	*FileObject
+}
+
+type DirDetail struct {
+	FileInfo
+	DirContentList
+}
+
+func (d* DirDetail) AsDirContentItem() *DirContentItem {
+	return &DirContentItem{
+		FileInfo: d.FileInfo,
+		FileObject: nil,
+	}
+}
+
+type FileDetail struct {
+	FileInfo
+	FileObject
+}
+
+func (d* FileDetail) AsDirContentItem() *DirContentItem {
+	return &DirContentItem{
+		FileInfo: d.FileInfo,
+		FileObject: &d.FileObject,
+	}
+}
+
 
 type UserfileTXN interface {
-	ListFiles(username string, dirpath string) (files []os.FileInfo, err error)
-	GetFileID(username string, path string) (id string, err error)
-	GetFileInfo(username string, path string) (info os.FileInfo, err error)
-	DeleteFile(username string, path string) error
-	DeleteDir(username string, path string) error
-	AddFile(username string, path string, id string) error
-	AddDir(username string, path string) error
-	CommitTranscation() error
-	RollingBackTranscation() error
+	UserfileOperation
+	Commit(ctx context.Context) error
+	Rollback() error
 }
 
-// KeyValueStorage is the interface for kv storage
-// Eg redis, tikv, etc
-// The storage engine should implement this interface, and start a KeyValueTXN
-type KeyValueStorage interface {
-	StartTranscation() (KeyValueTXN, error)
-}
-
-// KeyValueTXN is a transaction for key-value storage
-type KeyValueTXN interface {
-	Set(key string, value string) (err error)
-	Get(key string) (value string, err error)
-	Delete(key string) (err error)
-	CommitTranscation() (err error)
-	RollingBackTranscation() (err error)
+type FileObject struct {
+	Bucket string
+	Key    string
 }

@@ -2,9 +2,11 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
 	//"time"
 
@@ -43,69 +45,85 @@ func New(cosurl string, secretID string, secretKey string, logger *logrus.Entry)
 	}
 }
 
-func (s *Cos) isFileExist(filename string) bool {
+func (s *Cos) isFileExist(ctx context.Context, filename string) (bool, error) {
 	isexist, err := s.c.Object.IsExist(context.Background(), filename)
 	if err != nil {
-		s.l.Error("Check ", filename, " is exist failed", " ", err)
-		return false
+		s.l.Errorf("Fail to check exist %s: %s", filename, err)
+		return false, err
 	}
-	return isexist
+	return isexist, nil
 }
 
-func (s *Cos) UploadByPath(filename string, localpath string) error {
-	if s.isFileExist(filename) {
+func (s *Cos) UploadByPath(ctx context.Context, filename string, localpath string) error {
+	exist, err := s.isFileExist(ctx, filename)
+	if exist {
 		return nil
 	}
-	_, err := s.c.Object.PutFromFile(context.Background(), filename, localpath, nil)
+
 	if err != nil {
-		s.l.Error("Upload ", filename, " is exist failed", " ", err)
+		return fmt.Errorf("check exist: %s", filename)
 	}
-	return err
+
+	_, err = s.c.Object.PutFromFile(context.Background(), filename, localpath, nil)
+	if err != nil {
+		s.l.Errorf("Fail to PutFromFile %s: %s", filename, err)
+		return fmt.Errorf("upload file failed: %s", filename)
+	}
+
+	return nil
 }
 
 func (s *Cos) UploadByReader(ctx context.Context, filename string, io io.Reader) error {
-	if s.isFileExist(filename) {
+	exist, err := s.isFileExist(ctx, filename)
+	if exist {
 		return nil
 	}
-	_, err := s.c.Object.Put(ctx, filename, io, nil)
+
 	if err != nil {
-		s.l.Error("Upload ", filename, " is exist failed", " ", err)
+		return fmt.Errorf("existence check failed: %s", filename)
 	}
-	return err
+
+	_, err = s.c.Object.Put(ctx, filename, io, nil)
+	if err != nil {
+		s.l.Errorf("Fail to Upload file %s: %s", filename, err)
+		return fmt.Errorf("upload file failed: %s", filename)
+	}
+	return nil
 }
 
-func (s *Cos) DownloadByPath(filename string, localpath string) error {
-	_, err := s.c.Object.GetToFile(context.Background(), filename, localpath, nil)
+func (s *Cos) Download(ctx context.Context, filename string, localpath string) error {
+	_, err := s.c.Object.GetToFile(ctx, filename, localpath, nil)
 	if err != nil {
-		s.l.Error("Download ", filename, " is exist failed", " ", err)
+		s.l.Errorf("Fail to GetToFile %s: %s", filename, err)
+		return fmt.Errorf("download file failed: %s", filename)
 	}
-	return err
+	return nil
 }
 
-func (s *Cos) DownloadByReader(ctx context.Context, filename string) (io.Reader, error) {
-	resp, err := s.c.Object.Get(context.Background(), filename, nil)
+func (s *Cos) GetReader(ctx context.Context, filename string) (io.Reader, error) {
+	resp, err := s.c.Object.Get(ctx, filename, nil)
 	if err != nil {
-		s.l.Error("Download ", filename, " is exist failed", " ", err)
+		s.l.Errorf("Fail to Get %s: %s", filename, err)
+		return nil, fmt.Errorf("download file failed: %s", filename)
 	}
-	return resp.Body, err
+	return resp.Body, nil
 }
 
-func (s *Cos) DownloadByUrl(ctx context.Context, filename string) (string, error) {
-	//url, err := s.c.Object.GetPresignedURL(ctx, http.MethodGet, filename, s.secretID, s.secretKey, time.Hour, nil)
-	url := s.c.Object.GetObjectURL(filename)
-	/*
-		if err != nil {
-			s.l.Error("create Download url for %s failed", filename)
-			return "", err
-		}
-	*/
+func (s *Cos) GetDownloadURL(ctx context.Context, filename string) (string, error) {
+	url, err := s.c.Object.GetPresignedURL(ctx, http.MethodGet, filename, s.secretID, s.secretKey, time.Minute*1, nil)
+	if err != nil {
+		s.l.Errorf("Fail to GetPresignedURL for %s: %s", filename, err)
+		return "", fmt.Errorf("get url failed: %s", filename)
+	}
+
 	return url.String(), nil
 }
 
-func (s *Cos) Delete(filename string) error {
-	_, err := s.c.Object.Delete(context.Background(), filename, nil)
+func (s *Cos) Delete(ctx context.Context, filename string) error {
+	_, err := s.c.Object.Delete(ctx, filename, nil)
 	if err != nil {
-		s.l.Error("Delete ", filename, " is exist failed", " ", err)
+		s.l.Errorf("Fail to Delete %s: %s", filename, err)
+		return err
 	}
-	return err
+	return nil
 }
