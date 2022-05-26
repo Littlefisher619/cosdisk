@@ -67,5 +67,5 @@ func (rc *TikvTXN) CommitTranscation() (err error) {
 }
 
 func (rc *TikvTXN) RollingBackTranscation() (err error) {
-	return rc.txn.Commit(context.Background())
+	return rc.txn.Rollback()
 }

@@ -27,7 +27,7 @@ func TestAll(t *testing.T) {
 	t.Run("TestAddandListFile", func(t *testing.T) {
 		ass := require.New(t)
 
-		userid := "stupidfish"
+		userid := "testuser"
 		// test add not root file
 		ass.Error(txn.AddFile(userid, "wrong", "456"))
 
@@ -105,7 +105,7 @@ func TestAll(t *testing.T) {
 	t.Run("TestGetInfo", func(t *testing.T) {
 		ass := require.New(t)
 
-		userid := "stupidfish"
+		userid := "testuser"
 		info, err := txn.GetFileInfo(userid, "/")
 		ass.NoError(err)
 		ass.Equal(info.Name(), "/")
@@ -137,7 +137,7 @@ func TestAll(t *testing.T) {
 	t.Run("TestDeleteFile", func(t *testing.T) {
 		ass := require.New(t)
 
-		userid := "stupidfish"
+		userid := "testuser"
 		ass.NoError(txn.DeleteFile(userid, "/test1/file1.txt")) // remove file
 
 		files, err := txn.ListFiles(userid, "/test1/")
