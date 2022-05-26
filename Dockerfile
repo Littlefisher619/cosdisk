@@ -11,6 +11,7 @@ COPY . .
 
 RUN make graph
 RUN make ftp
+RUN make fuse
 
 FROM alpine:latest as certs
 RUN apk --update add ca-certificates
