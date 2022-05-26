@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
 	//"time"
 
@@ -91,14 +92,11 @@ func (s *Cos) DownloadByReader(ctx context.Context, filename string) (io.Reader,
 }
 
 func (s *Cos) DownloadByUrl(ctx context.Context, filename string) (string, error) {
-	//url, err := s.c.Object.GetPresignedURL(ctx, http.MethodGet, filename, s.secretID, s.secretKey, time.Hour, nil)
-	url := s.c.Object.GetObjectURL(filename)
-	/*
-		if err != nil {
-			s.l.Error("create Download url for %s failed", filename)
-			return "", err
-		}
-	*/
+	url, err := s.c.Object.GetPresignedURL(ctx, http.MethodGet, filename, s.secretID, s.secretKey, time.Minute, nil)
+	if err != nil {
+		s.l.Error("GetPresignedURL ", filename, " failed", " ", err)
+		return "", err
+	}
 	return url.String(), nil
 }
 
