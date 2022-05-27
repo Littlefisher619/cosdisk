@@ -1,3 +1,4 @@
 test.go
 build
 node-modules
+.vscode

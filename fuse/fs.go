@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"sync"
 	"syscall"
 
 	"bazil.org/fuse"
@@ -21,7 +22,7 @@ type FS struct {
 	cosdisk *service.CosDisk
 	userId  string
 	root    *Node
-	nodes   map[string]*Node
+	nodes   *sync.Map
 }
 
 func NewFS(username string, password string,
@@ -36,7 +37,7 @@ func NewFS(username string, password string,
 
 	fs1 := FS{
 		cosdisk: cosdisk,
-		nodes:   make(map[string]*Node),
+		nodes:   &sync.Map{},
 		userId:  fmt.Sprint(gotUser.Id),
 		logger:  logger.WithField("fuse", username),
 	}
@@ -88,9 +89,9 @@ func (node Node) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	path := path.Join(node.name, name)
 	node.fs.logger.Debug("Lookup " + path)
 
-	v, ok := node.fs.nodes[path]
+	v, ok := node.fs.nodes.Load(path)
 	if ok {
-		return v, nil
+		return v.(*Node), nil
 	}
 	info, err := node.fs.cosdisk.GetFileInfo(node.fs.userId, path)
 	if err != nil {
@@ -109,8 +110,9 @@ func (node Node) Lookup(ctx context.Context, name string) (fs.Node, error) {
 		new_node.entry = &fuse.Dirent{Inode: 0, Name: path, Type: fuse.DT_File}
 		new_node.IsDir = false
 	}
-	node.fs.nodes[path] = &new_node
-	return &new_node, nil
+
+	actual, _ := node.fs.nodes.LoadOrStore(path, &new_node)
+	return actual.(*Node), nil
 }
 
 func (node Node) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
@@ -153,8 +155,9 @@ func (d Node) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 	if err != nil {
 		return nil, err
 	}
-	d.fs.nodes[req.Name] = &newDir
-	return newDir, nil
+	actual, _ := d.fs.nodes.LoadOrStore(new_path, &newDir)
+
+	return actual.(*Node), nil
 }
 
 func (d Node) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
@@ -176,7 +179,7 @@ func (d Node) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 			return err
 		}
 	}
-	delete(d.fs.nodes, new_path)
+	d.fs.nodes.Delete(new_path)
 	return nil
 }
 
@@ -276,6 +279,6 @@ func (f Node) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	if err != nil {
 		return nil, nil, err
 	}
-	f.fs.nodes[new_path] = &newfile
-	return newfile, newfile, nil
+	actual, _ := f.fs.nodes.LoadOrStore(new_path, &newfile)
+	return actual.(*Node), actual.(*Node), nil
 }
