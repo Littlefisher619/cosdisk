@@ -102,7 +102,7 @@ func removeDirAndFiles(b benchmark, dirname string, files []string) {
 
 func runBenchmarkSingle(b benchmark) {
 	b.StopTimer()
-	contents := []string{""} //prepareFileContent(contentPoolSize)]
+	contents := prepareFileContent(contentPoolSize)
 	dirs := createTestDirs(b, dirCreateCount)
 	type dir struct {
 		name     string
